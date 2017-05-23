@@ -17,8 +17,10 @@ type FacebookReq struct {
 
 // FacebookResponse is a thing
 type FacebookResponse struct {
-	Email string `json:"email"`
-	ID    string `json:"id"`
+	Email     string `json:"email"`
+	ID        string `json:"id"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
 }
 
 // New is a constructor
@@ -31,7 +33,7 @@ func New(accessToken string) FacebookReq {
 
 func (fb *FacebookReq) request(method, node string, fields []string) (*FacebookResponse, error) {
 	req, err := http.NewRequest(method, basePath+"/"+fb.APIVersion+"/"+node, nil)
-	profile := new(FacebookResponse)
+	var profile *FacebookResponse
 
 	q := req.URL.Query()
 	q.Add("access_token", fb.accessToken)
