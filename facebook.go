@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-const currentVersion = "2.8"
+const currentVersion = "2.9"
 const basePath = "https://graph.facebook.com"
 
 // FacebookReq is a facebookReq
@@ -18,31 +18,36 @@ type FacebookReq struct {
 // FacebookResponse is a thing
 type FacebookResponse struct {
 	Email     string `json:"email"`
-	ID        string `json:"id"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
+	ID        string `json:"id"`
 }
 
 // New is a constructor
 func New(accessToken string) FacebookReq {
 
 	return FacebookReq{
+		APIVersion:  currentVersion,
 		accessToken: accessToken,
 	}
 }
 
 func (fb *FacebookReq) request(method, node string, fields []string) (*FacebookResponse, error) {
-	req, err := http.NewRequest(method, basePath+"/"+fb.APIVersion+"/"+node, nil)
-	var profile *FacebookResponse
+	req, err := http.NewRequest(method, basePath+"/v"+fb.APIVersion+"/"+node, nil)
+	profile := new(FacebookResponse)
 
 	q := req.URL.Query()
 	q.Add("access_token", fb.accessToken)
-	req.URL.RawQuery = q.Encode()
-
 	f := strings.Join(fields, ",")
 	q.Add("fields", f)
+	req.URL.RawQuery = q.Encode()
 
 	res, err := http.Get(req.URL.String())
+
+	if err != nil {
+		return nil, err
+	}
+
 	defer res.Body.Close()
 
 	json.NewDecoder(res.Body).Decode(profile)
