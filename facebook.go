@@ -2,12 +2,15 @@ package gograph
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strings"
 )
 
 const currentVersion = "2.9"
 const basePath = "https://graph.facebook.com"
+
+const CouldNotPerformRequest = "Could not perform request"
 
 // FacebookReq is a facebookReq
 type FacebookReq struct {
@@ -24,8 +27,8 @@ type FacebookResponse struct {
 }
 
 // New is a constructor
-func New(accessToken string) FacebookReq {
 
+func New(accessToken string) FacebookReq {
 	return FacebookReq{
 		APIVersion:  currentVersion,
 		accessToken: accessToken,
@@ -50,9 +53,12 @@ func (fb *FacebookReq) request(method, node string, fields []string) (*FacebookR
 
 	defer res.Body.Close()
 
-	json.NewDecoder(res.Body).Decode(profile)
+	if res.StatusCode == http.StatusOK {
+		json.NewDecoder(res.Body).Decode(profile)
+		return profile, nil
+	}
 
-	return profile, err
+	return nil, errors.New(CouldNotPerformRequest)
 }
 
 func (fb *FacebookReq) get(node string, fields []string) (*FacebookResponse, error) {
